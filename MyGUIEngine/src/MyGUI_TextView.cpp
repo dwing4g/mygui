@@ -120,7 +120,7 @@ namespace MyGUI
 			return;*/
 
 		result.height += _height;
-
+		Char lastChar = 0;
 		for (; index != end; ++index)
 		{
 			Char character = *index;
@@ -197,10 +197,11 @@ namespace MyGUI
 			if (info == nullptr)
 				continue;
 
-			if (FontCodeType::Space == character || FontCodeType::Tab == character)
+			if (FontCodeType::Space == character || FontCodeType::Tab == character || character >= 0x2000 || lastChar >= 0x2000)
 			{
 				roll_back.set(line_info.symbols.size(), index, count, width);
 			}
+			lastChar = character;
 
 			float char_width = info->width;
 			float char_height = info->height;
@@ -222,7 +223,7 @@ namespace MyGUI
 			float char_fullAdvance = char_bearingX + char_advance;
 
 			// перенос слов
-			if (_maxWidth != -1 && (width + char_fullAdvance) > _maxWidth && !roll_back.empty())
+			if (_maxWidth != -1 && width > 0 && (width + char_fullAdvance) > _maxWidth && !roll_back.empty())
 			{
 				// откатываем до последнего пробела
 				width = roll_back.getWidth();
@@ -246,6 +247,10 @@ namespace MyGUI
 				// отменяем откат
 				roll_back.clear();
 
+				lastChar = 0;
+				character = *index;
+				if (FontCodeType::Space != character && FontCodeType::Tab != character)
+					index--;
 				continue;
 			}
 
